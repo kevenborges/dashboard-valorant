@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — {{ jogador }}#{{ tagline }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --val-red:    #ff4655;
+            --val-dark:   #0f1923;
+            --val-panel:  #1a2634;
+            --val-border: rgba(255,255,255,0.08);
+            --val-light:  #ece8e1;
+            --val-muted:  #7f8fa6;
+            --green:      #4ade80;
+            --yellow:     #facc15;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { background-color: var(--val-dark); color: var(--val-light); font-family: 'Montserrat', sans-serif; padding-bottom: 60px; }
+        .val-font { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
+
+        /* NAV */
+        .topbar { border-bottom: 1px solid var(--val-border); padding: 14px 0; margin-bottom: 32px; }
+        .btn-back { font-family: 'Bebas Neue', sans-serif; letter-spacing: 1.5px; font-size: 1rem; color: var(--val-light); border: 1px solid var(--val-red); border-radius: 0; padding: 6px 20px; text-decoration: none; transition: background .2s, color .2s; }
+        .btn-back:hover { background: var(--val-red); color: #fff; }
+
+        /* SECTION TITLES */
+        .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 3px; color: var(--val-light); border-left: 3px solid var(--val-red); padding-left: 12px; margin-bottom: 20px; }
+
+        /* PLAYER CARD */
+        .player-card { background: var(--val-panel); border: 1px solid var(--val-border); height: 100%; }
+        .player-header { background: var(--val-red); padding: 18px 20px; display: flex; align-items: center; gap: 14px; }
+        .player-header img { width: 64px; height: 64px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); object-fit: cover; }
+        .player-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1; }
+        .player-level { display: inline-block; margin-top: 4px; font-size: .7rem; font-weight: 700; letter-spacing: 1px; background: rgba(0,0,0,.35); padding: 2px 8px; }
+        .rank-body { padding: 28px 20px; text-align: center; }
+        .rank-body img { max-width: 130px; margin-bottom: 12px; filter: drop-shadow(0 0 12px rgba(255,70,85,.25)); }
+        .rank-name { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1.1; }
+        .rank-rr { font-size: .85rem; font-weight: 700; color: var(--val-red); margin-top: 4px; }
+        .rr-change { font-size: .72rem; font-weight: 700; margin-top: 2px; }
+        .rr-up { color: var(--green); }
+        .rr-down { color: var(--val-red); }
+        .player-tag { font-size: .75rem; color: rgba(255,255,255,.7); font-weight: 600; }
+        .region-pill { font-size: .6rem; letter-spacing: 1px; font-weight: 700; background: rgba(0,0,0,.35); padding: 2px 6px; margin-left: 6px; text-transform: uppercase; }
+        
+        .peak-box { margin: 0 20px 16px; padding: 10px 12px; border: 1px solid rgba(250, 204, 21, .25); background: rgba(250, 204, 21, .06); text-align: center; }
+        .peak-lbl { font-size: .62rem; font-weight: 700; letter-spacing: 1.6px; color: var(--yellow); text-transform: uppercase; }
+        .peak-icon { display: block; width: 42px; height: 42px; object-fit: contain; margin: 4px auto 2px; }
+        .peak-rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.35rem; line-height: 1.1; color: var(--yellow); }
+        
+        .rr-bar-wrap { margin: 0 20px 20px; }
+        .rr-bar-label { display: flex; justify-content: space-between; font-size: .7rem; color: var(--val-muted); margin-bottom: 4px; }
+        .rr-bar-track { height: 4px; background: rgba(255,255,255,.1); }
+        .rr-bar-fill { height: 100%; background: var(--val-red); }
+        
+        .stat-grid-header { padding: 10px 16px; font-size: .7rem; font-weight: 700; letter-spacing: 1.5px; color: var(--val-light); text-transform: uppercase; background: rgba(0,0,0,.2); border-top: 1px solid var(--val-border); }
+        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--val-border); border-bottom: 1px solid var(--val-border); }
+        .stat-cell { background: var(--val-panel); padding: 14px 16px; text-align: center; }
+        .stat-cell .val { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; line-height: 1; }
+        .stat-cell .lbl { font-size: .65rem; font-weight: 700; letter-spacing: 1.2px; color: var(--val-muted); margin-top: 2px; text-transform: uppercase; }
+        
+        .seq-wrap { padding: 14px 20px; border-bottom: 1px solid var(--val-border); }
+        .seq-label { font-size: .65rem; font-weight: 700; letter-spacing: 1.2px; color: var(--val-muted); text-transform: uppercase; margin-bottom: 8px; }
+        .seq-dots { display: flex; flex-wrap: wrap; gap: 4px; }
+        .seq-dot { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: .7rem; }
+        .seq-dot.win  { background: rgba(74,222,128,.15); color: var(--green); border: 1px solid rgba(74,222,128,.3); }
+        .seq-dot.loss { background: rgba(255,70,85,.12); color: var(--val-red); border: 1px solid rgba(255,70,85,.25); }
+
+        .all-time-stats { padding: 14px 20px; }
+        .all-time-flex { display: flex; justify-content: space-between; align-items: center; font-size: .85rem; }
+
+        /* TOP AGENTES / TOP MAPAS */
+        .side-card { background: var(--val-panel); border: 1px solid var(--val-border); height: 100%; }
+        .side-card-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px; color: var(--val-light); padding: 14px 16px; border-bottom: 1px solid var(--val-border); }
+        .agent-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--val-border); }
+        .agent-row:last-child { border-bottom: none; }
+        .agent-row img { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
+        .agent-info { flex: 1; min-width: 0; }
+        .agent-info-name { font-weight: 700; font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .agent-info-sub { font-size: .7rem; color: var(--val-muted); }
+        .agent-wr { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; min-width: 44px; text-align: right; }
+        .wr-bar-wrap { margin: 3px 0 0; }
+        .wr-bar-track { height: 3px; background: rgba(255,255,255,.08); }
+        .wr-bar-fill { height: 100%; }
+        .map-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--val-border); }
+        .map-row:last-child { border-bottom: none; }
+        .map-name { font-weight: 700; font-size: .85rem; }
+        .map-right { text-align: right; }
+        .map-wr { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
+        .map-record { font-size: .7rem; color: var(--val-muted); }
+
+       /* STREAMS */
+        .stream-card { background: var(--val-panel); border: 1px solid var(--val-border); transition: border-color .2s, transform .2s; display: flex; flex-direction: column; height: 100%; }
+        .stream-card:hover { border-color: var(--val-red); transform: translateY(-4px); }
+        .stream-card img { width: 100%; display: block; }
+        .stream-body { padding: 12px 14px; display: flex; flex-direction: column; flex: 1; }
+        .stream-title { font-size: .82rem; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; min-height: 2.8em; }
+        .stream-name { font-size: .75rem; color: var(--val-red); font-weight: 700; }
+        .stream-viewers { font-size: .7rem; color: var(--val-muted); margin-top: 2px; }
+        .btn-watch { display: block; margin-top: auto; text-align: center; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1.5px; font-size: 1rem; color: var(--val-light); border: 1px solid var(--val-red); padding: 5px 0; text-decoration: none; transition: background .2s; }
+        .btn-watch:hover { background: var(--val-red); color: #fff; }
+
+        /* NOTÍCIAS */
+        .news-card { background: var(--val-panel); border: 1px solid var(--val-border); text-decoration: none; color: var(--val-light); display: block; transition: border-color .2s, transform .2s; }
+        .news-card:hover { border-color: var(--val-red); transform: translateY(-3px); color: var(--val-light); }
+        .news-card img { width: 100%; height: 130px; object-fit: cover; display: block; }
+        .news-body { padding: 12px 14px; }
+        .news-cat { font-size: .65rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--val-red); margin-bottom: 6px; }
+        .news-title { font-size: .82rem; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* TABELA PARTIDAS */
+        .matches-wrap { background: var(--val-panel); border: 1px solid var(--val-border); overflow-x: auto; }
+        table.matches { width: 100%; border-collapse: collapse; font-size: .82rem; }
+        table.matches thead tr { background: rgba(255,70,85,.1); font-family: 'Bebas Neue', sans-serif; font-size: .95rem; letter-spacing: 1.5px; color: var(--val-muted); }
+        table.matches th { padding: 12px 16px; font-weight: 400; white-space: nowrap; }
+        table.matches td { padding: 11px 16px; border-top: 1px solid var(--val-border); white-space: nowrap; vertical-align: middle; }
+        table.matches tbody tr.row-win  { border-left: 3px solid var(--green); }
+        table.matches tbody tr.row-loss { border-left: 3px solid var(--val-red); }
+        table.matches tbody tr:hover { background: rgba(255,255,255,.03); }
+        .result-win  { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--green); }
+        .result-loss { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--val-red); }
+        .agent-cell { display: flex; align-items: center; gap: 8px; }
+        .agent-cell img { width: 30px; height: 30px; object-fit: contain; }
+        .kd-badge { display: inline-block; padding: 2px 8px; font-weight: 700; font-size: .78rem; }
+        .kd-good { background: rgba(74,222,128,.15); color: var(--green); }
+        .kd-mid  { background: rgba(255,255,255,.08); color: var(--val-light); }
+        .kd-bad  { background: rgba(255,70,85,.15); color: var(--val-red); }
+        .hs-bar-wrap { display: flex; align-items: center; gap: 8px; min-width: 90px; }
+        .hs-bar-track { flex: 1; height: 3px; background: rgba(255,255,255,.1); }
+        .hs-bar-fill  { height: 100%; background: var(--yellow); }
+        .hs-val { font-size: .75rem; font-weight: 700; color: var(--yellow); min-width: 34px; text-align: right; }
+        .btn-scoreboard { font-size: .7rem; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; color: var(--val-muted); border: 1px solid var(--val-border); padding: 3px 10px; text-decoration: none; white-space: nowrap; transition: all .2s; }
+        .btn-scoreboard:hover { border-color: var(--val-red); color: var(--val-red); }
+
+        .error-card { background: var(--val-panel); border: 1px solid var(--val-border); padding: 48px 24px; text-align: center; }
+        .error-card h4 { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--val-red); letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <div class="container">
+            <a href="/" class="btn-back">&larr; Voltar</a>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- ═══ LINHA 1: Player Card + Top Agentes + Top Mapas ═══ -->
+        <div class="row g-3 mb-4">
+
+            <!-- Player Card -->
+            <div class="col-lg-4 col-md-6">
+                {% if status_jogador %}
+                <div class="player-card">
+                    <div class="player-header">
+                        <img src="{{ status_jogador.avatar }}" alt="Avatar">
+                        <div>
+                            <div class="player-name">{{ jogador }} <span class="player-tag">#{{ tagline }}</span></div>
+                            <div class="player-level">Nível {{ status_jogador.nivel }}<span class="region-pill">{{ status_jogador.regiao }}</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="rank-body">
+                        <img src="{{ status_jogador.imagem_rank }}" alt="{{ status_jogador.rank }}">
+                        <div class="rank-name">{{ status_jogador.rank }}</div>
+                        <div class="rank-rr">{{ status_jogador.pontos_rr }} RR</div>
+                        {% if status_jogador.rr_change %}
+                        <div class="rr-change {% if status_jogador.rr_change >= 0 %}rr-up{% else %}rr-down{% endif %}">
+                            {% if status_jogador.rr_change >= 0 %}+{% endif %}{{ status_jogador.rr_change }} última partida
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if status_jogador.peak_rank %}
+                    <div class="peak-box">
+                        <div class="peak-lbl">Peak Rating</div>
+                        {% if status_jogador.peak_imagem %}
+                        <img class="peak-icon" src="{{ status_jogador.peak_imagem }}" alt="Ícone do elo máximo: {{ status_jogador.peak_rank }}">
+                        {% endif %}
+                        <div class="peak-rank">{{ status_jogador.peak_rank }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="rr-bar-wrap">
+                        <div class="rr-bar-label"><span>0 RR</span><span>100 RR</span></div>
+                        <div class="rr-bar-track">
+                            <div class="rr-bar-fill" style="width: {{ status_jogador.pontos_rr }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Últimas 30 Partidas -->
+                    {% if stats %}
+                    <div class="stat-grid-header">Últimas {{ stats.total }} Partidas</div>
+                    <div class="stat-grid">
+                        <div class="stat-cell">
+                            <div class="val" style="color:{% if stats.win_rate >= 50 %}var(--green){% else %}var(--val-red){% endif %}">{{ stats.win_rate }}%</div>
+                            <div class="lbl">Win Rate</div>
+                        </div>
+                        <div class="stat-cell">
+                            <div class="val">{{ stats.kd_medio }}</div>
+                            <div class="lbl">K/D Médio</div>
+                        </div>
+                        <div class="stat-cell">
+                            <div class="val" style="color:var(--yellow)">{{ stats.hs_medio }}%</div>
+                            <div class="lbl">HS%</div>
+                        </div>
+                        <div class="stat-cell">
+                            <div class="val">{{ stats.acs_medio }}</div>
+                            <div class="lbl">ACS Médio</div>
+                        </div>
+                    </div>
+                    
+                    <div class="seq-wrap">
+                        <div class="seq-label">Sequência Recente</div>
+                        <div class="seq-dots">
+                            {% for r in stats.sequencia %}
+                            <div class="seq-dot {% if r == 'V' %}win{% else %}loss{% endif %}">{{ r }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Estatísticas All-Time -->
+                    {% if stats_all_time %}
+                    <div class="all-time-stats">
+                        <div class="seq-label" style="margin-bottom: 10px;">Resumo All-Time (Competitivo)</div>
+                        <!-- Linha 1: Jogos, V, D, WR -->
+                        <div class="all-time-flex" style="margin-bottom: 10px;">
+                            <div style="text-align:center">
+                                <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;line-height:1">{{ stats_all_time.jogos }}</div>
+                                <div style="font-size:.6rem;color:var(--val-muted);letter-spacing:1px;text-transform:uppercase">Jogos</div>
+                            </div>
+                            <div style="text-align:center">
+                                <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;line-height:1;color:var(--green)">{{ stats_all_time.vitorias }}</div>
+                                <div style="font-size:.6rem;color:var(--val-muted);letter-spacing:1px;text-transform:uppercase">Vitórias</div>
+                            </div>
+                            <div style="text-align:center">
+                                <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;line-height:1;color:var(--val-red)">{{ stats_all_time.derrotas }}</div>
+                                <div style="font-size:.6rem;color:var(--val-muted);letter-spacing:1px;text-transform:uppercase">Derrotas</div>
+                            </div>
+                            <div style="text-align:center">
+                                <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;line-height:1;color:{% if stats_all_time.win_rate >= 50 %}var(--green){% else %}var(--val-red){% endif %}">{{ stats_all_time.win_rate }}%</div>
+                                <div style="font-size:.6rem;color:var(--val-muted);letter-spacing:1px;text-transform:uppercase">Win Rate</div>
+                            </div>
+                        </div>
+                        <!-- Linha 2: K/D e HS% (das últimas partidas) -->
+                        {% if stats_all_time.kd %}
+                        <div style="display:flex;gap:1px;background:var(--val-border);border-top:1px solid var(--val-border);">
+                            <div style="flex:1;background:var(--val-panel);padding:10px;text-align:center">
+                                <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;line-height:1">{{ stats_all_time.kd }}</div>
+                                <div style="font-size:.6rem;color:var(--val-muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px">K/D Recente</div>
+                            </div>
+                            <div style="flex:1;background:var(--val-panel);padding:10px;text-align:center">
+                                <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;line-height:1;color:var(--yellow)">{{ stats_all_time.hs }}%</div>
+                                <div style="font-size:.6rem;color:var(--val-muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px">HS% Recente</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                </div>
+                {% else %}
+                <div class="error-card">
+                    <h4>Jogador não encontrado</h4>
+                    <p class="mb-0 mt-2" style="font-size:.82rem;color:var(--val-muted)">Verifique o Riot ID e a Tagline.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Top Agentes (Últimas 30 Partidas) -->
+            {% if top_agentes %}
+            <div class="col-lg-4 col-md-6">
+                <div class="side-card">
+                    <div class="side-card-title">Top Agentes</div>
+                    {% for a in top_agentes %}
+                    <div class="agent-row">
+                        {% if a.icone %}<img src="{{ a.icone }}" alt="{{ a.agente }}">{% endif %}
+                        <div class="agent-info">
+                            <div class="agent-info-name">{{ a.agente }}</div>
+                            <div class="agent-info-sub">{{ a.jogos }} jogo{{ 's' if a.jogos != 1 else '' }}</div>
+                            <div class="wr-bar-wrap">
+                                <div class="wr-bar-track">
+                                    <div class="wr-bar-fill" style="width:{{ a.win_rate }}%;background:{% if a.win_rate >= 50 %}var(--green){% else %}var(--val-red){% endif %}"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="agent-wr" style="color:{% if a.win_rate >= 50 %}var(--green){% else %}var(--val-red){% endif %}">
+                            {{ a.win_rate }}%
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Top Mapas (Últimas 30 Partidas) -->
+            {% if top_mapas %}
+            <div class="col-lg-4 col-md-6">
+                <div class="side-card">
+                    <div class="side-card-title">Top Mapas</div>
+                    {% for m in top_mapas %}
+                    <div class="map-row" style="justify-content: flex-start; gap: 12px;">
+                        {% if m.icone %}
+                        <img src="{{ m.icone }}" alt="{{ m.mapa }}" style="width: 56px; height: 32px; object-fit: cover; border-radius: 3px;">
+                        {% endif %}
+                        <div class="map-name" style="flex: 1;">{{ m.mapa }}</div>
+                        <div class="map-right">
+                            <div class="map-wr" style="color:{% if m.win_rate >= 50 %}var(--green){% else %}var(--val-red){% endif %}">{{ m.win_rate }}%</div>
+                            <div class="map-record">{{ m.vitorias }}W – {{ m.derrotas }}L</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- ═══ LINHA 1b: Streams ═══ -->
+        <div class="mb-5">
+            <div class="section-title">Live Streams — Valorant BR</div>
+            <div class="row g-3">
+                {% if streams %}
+                    {% for stream in streams %}
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <div class="stream-card">
+                            <img src="{{ stream.thumbnail }}" alt="Thumbnail">
+                            <div class="stream-body">
+                                <div class="stream-title" title="{{ stream.titulo }}">{{ stream.titulo }}</div>
+                                <div class="stream-name">{{ stream.streamer }}</div>
+                                <div class="stream-viewers">{{ stream.viewers_fmt }} espectadores</div>
+                                <a href="{{ stream.link }}" target="_blank" class="btn-watch">Assistir</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="error-card">
+                            <h4>Offline</h4>
+                            <p class="mb-0 mt-2" style="font-size:.82rem;color:var(--val-muted)">Nenhum canal BR ao vivo no momento.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ LINHA 2: Notícias ═══ -->
+        {% if noticias %}
+        <div class="mb-5">
+            <div class="section-title">Últimas Notícias — Valorant</div>
+            <div class="row g-3">
+                {% for noticia in noticias %}
+                <div class="col-md-4 col-lg-2">
+                    <a href="{{ noticia.link }}" target="_blank" class="news-card">
+                        {% if noticia.thumbnail %}
+                        <img src="{{ noticia.thumbnail }}" alt="{{ noticia.titulo }}">
+                        {% endif %}
+                        <div class="news-body">
+                            <div class="news-cat">{{ noticia.categoria }}</div>
+                            <div class="news-title">{{ noticia.titulo }}</div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ═══ LINHA 3: Histórico de Partidas ═══ -->
+        {% if historico %}
+        <div class="section-title">Últimas {{ stats.total }} Partidas — {{ jogador }}#{{ tagline }}</div>
+        
+        <div class="matches-wrap">
+            <table class="matches">
+                <thead>
+                    <tr>
+                        <th>Resultado</th>
+                        <th>Data</th>
+                        <th>Agente</th>
+                        <th>Mapa</th>
+                        <th>Modo</th>
+                        <th class="text-center">K</th>
+                        <th class="text-center">D</th>
+                        <th class="text-center">A</th>
+                        <th class="text-center">K/D</th>
+                        <th class="text-center">ACS</th>
+                        <th>HS%</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in historico %}
+                    <tr class="{% if p.venceu %}row-win{% else %}row-loss{% endif %}">
+                        <td>
+                            {% if p.venceu %}<span class="result-win">Vitória</span>
+                            {% else %}<span class="result-loss">Derrota</span>{% endif %}
+                        </td>
+                        <td style="color:var(--val-muted)">{{ p.data or '—' }}</td>
+                        <td>
+                            <div class="agent-cell">
+                                {% if p.agente_icone %}<img src="{{ p.agente_icone }}" alt="{{ p.agente }}">{% endif %}
+                                {{ p.agente }}
+                            </div>
+                        </td>
+                        <td><strong>{{ p.mapa }}</strong></td>
+                        <td style="color:var(--val-muted)">{{ p.modo }}</td>
+                        <td class="text-center" style="color:var(--green);font-weight:700">{{ p.kills }}</td>
+                        <td class="text-center" style="color:var(--val-red);font-weight:700">{{ p.deaths }}</td>
+                        <td class="text-center" style="color:var(--yellow)">{{ p.assists }}</td>
+                        <td class="text-center">
+                            <span class="kd-badge {% if p.kd >= 1.5 %}kd-good{% elif p.kd >= 1.0 %}kd-mid{% else %}kd-bad{% endif %}">{{ p.kd }}</span>
+                        </td>
+                        <td class="text-center" style="font-weight:700">{% if p.acs is not none %}{{ p.acs }}{% else %}—{% endif %}</td>
+                        <td>
+                            <div class="hs-bar-wrap">
+                                <div class="hs-bar-track">
+                                    <div class="hs-bar-fill" style="width:{{ [p.hs_pct, 100]|min }}%"></div>
+                                </div>
+                                <div class="hs-val">{{ p.hs_pct }}%</div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if p.match_id %}
+                            <a href="/match/{{ p.match_id }}?jogador={{ jogador }}&tag={{ tagline }}" class="btn-scoreboard">Ver Partida</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+</html>

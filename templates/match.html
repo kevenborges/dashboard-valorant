@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partida — {{ scoreboard.mapa }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --val-red:    #ff4655;
+            --val-dark:   #0f1923;
+            --val-panel:  #1a2634;
+            --val-border: rgba(255,255,255,0.08);
+            --val-light:  #ece8e1;
+            --val-muted:  #7f8fa6;
+            --green:      #4ade80;
+            --yellow:     #facc15;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { background: var(--val-dark); color: var(--val-light); font-family: 'Montserrat', sans-serif; padding-bottom: 60px; }
+        .val-font { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
+
+        /* NAV */
+        .topbar { border-bottom: 1px solid var(--val-border); padding: 14px 0; margin-bottom: 32px; }
+        .btn-back { font-family: 'Bebas Neue', sans-serif; letter-spacing: 1.5px; font-size: 1rem; color: var(--val-light); border: 1px solid var(--val-red); border-radius: 0; padding: 6px 20px; text-decoration: none; transition: background .2s; }
+        .btn-back:hover { background: var(--val-red); color: #fff; }
+
+        /* HEADER DA PARTIDA */
+        .match-header {
+            background: var(--val-panel);
+            border: 1px solid var(--val-border);
+            padding: 28px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .match-meta { font-size: .8rem; color: var(--val-muted); letter-spacing: 1px; text-transform: uppercase; }
+        .match-map  { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; line-height: 1; }
+        .score-block { text-align: center; }
+        .score-nums { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; line-height: 1; display: flex; align-items: center; gap: 16px; }
+        .score-sep  { color: var(--val-muted); font-size: 2rem; }
+        .score-win  { color: var(--green); }
+        .score-loss { color: var(--val-red); }
+        .score-label { font-size: .65rem; font-weight: 700; letter-spacing: 2px; color: var(--val-muted); text-transform: uppercase; margin-top: 4px; }
+
+        /* TABELA */
+        .team-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 2px; padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+        .team-title.win-team  { background: rgba(74,222,128,.12); color: var(--green);   border-left: 3px solid var(--green); }
+        .team-title.loss-team { background: rgba(255,70,85,.08);  color: var(--val-red); border-left: 3px solid var(--val-red); }
+
+        .sb-wrap { background: var(--val-panel); border: 1px solid var(--val-border); overflow-x: auto; margin-bottom: 20px; }
+        table.sb { width: 100%; border-collapse: collapse; font-size: .82rem; }
+        table.sb thead tr { background: rgba(255,255,255,.04); font-family: 'Bebas Neue', sans-serif; font-size: .9rem; letter-spacing: 1.5px; color: var(--val-muted); }
+        table.sb th { padding: 10px 14px; font-weight: 400; white-space: nowrap; }
+        table.sb td { padding: 10px 14px; border-top: 1px solid var(--val-border); vertical-align: middle; white-space: nowrap; }
+        table.sb tbody tr:hover { background: rgba(255,255,255,.03); }
+
+        /* Destaque do jogador buscado */
+        table.sb tbody tr.highlight {
+            background: rgba(255,70,85,.1);
+            border-left: 3px solid var(--val-red);
+        }
+        table.sb tbody tr.highlight td:nth-child(2) .player-name-cell {
+            color: var(--val-red);
+        }
+
+        .agent-cell { display: flex; align-items: center; gap: 8px; }
+        .agent-cell img { width: 30px; height: 30px; object-fit: contain; }
+        .player-name-cell { font-weight: 700; }
+        .player-tag { color: var(--val-muted); font-size: .75rem; font-weight: 400; }
+
+        .kd-badge { display: inline-block; padding: 2px 8px; font-weight: 700; font-size: .78rem; }
+        .kd-good { background: rgba(74,222,128,.15); color: var(--green); }
+        .kd-mid  { background: rgba(255,255,255,.08); color: var(--val-light); }
+        .kd-bad  { background: rgba(255,70,85,.15);   color: var(--val-red); }
+
+        .hs-bar-wrap { display: flex; align-items: center; gap: 8px; min-width: 80px; }
+        .hs-bar-track { flex: 1; height: 3px; background: rgba(255,255,255,.1); }
+        .hs-bar-fill  { height: 100%; background: var(--yellow); }
+        .hs-val { font-size: .75rem; font-weight: 700; color: var(--yellow); min-width: 34px; text-align: right; }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <div class="container">
+            <a href="javascript:history.back()" class="btn-back">&larr; Voltar</a>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="match-header">
+            <div>
+                <div class="match-meta">{{ scoreboard.modo }}</div>
+                <div class="match-map">{{ scoreboard.mapa }}</div>
+            </div>
+            <div class="score-block">
+                <div class="score-nums">
+                    <span class="{% if scoreboard.time_vencedor == 'red' %}score-win{% else %}score-loss{% endif %}">{{ scoreboard.placar_a }}</span>
+                    <span class="score-sep">:</span>
+                    <span class="{% if scoreboard.time_vencedor == 'blue' %}score-win{% else %}score-loss{% endif %}">{{ scoreboard.placar_b }}</span>
+                </div>
+                <div class="score-label">Time A &nbsp;·&nbsp; Time B</div>
+            </div>
+        </div>
+
+        <!-- TIMES -->
+        {% for time_label, jogadores, eh_vencedor in [
+            ('Time A', scoreboard.time_a, scoreboard.time_vencedor == 'red'),
+            ('Time B', scoreboard.time_b, scoreboard.time_vencedor == 'blue')
+        ] %}
+        <div class="sb-wrap">
+            <div class="team-title {% if eh_vencedor %}win-team{% else %}loss-team{% endif %}">
+                {{ time_label }} — {% if eh_vencedor %}Vitória{% else %}Derrota{% endif %}
+            </div>
+            <table class="sb">
+                <thead>
+                    <tr>
+                        <th>Agente</th>
+                        <th>Jogador</th>
+                        <th class="text-center">ACS</th>
+                        <th class="text-center">K</th>
+                        <th class="text-center">D</th>
+                        <th class="text-center">A</th>
+                        <th class="text-center">K/D</th>
+                        <th class="text-center">ADR</th>
+                        <th>HS%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in jogadores %}
+                    {% set is_highlight = p.nome|lower == jogador|lower and p.tag|lower == tagline|lower %}
+                    <tr class="{% if is_highlight %}highlight{% endif %}">
+                        <td>
+                            <div class="agent-cell">
+                                {% if p.agente_icone %}<img src="{{ p.agente_icone }}" alt="{{ p.agente }}">{% endif %}
+                                {{ p.agente }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="player-name-cell">{{ p.nome }}</span>
+                            <span class="player-tag">#{{ p.tag }}</span>
+                        </td>
+                        <td class="text-center" style="font-weight:700">{{ p.acs }}</td>
+                        <td class="text-center" style="color:var(--green);font-weight:700">{{ p.kills }}</td>
+                        <td class="text-center" style="color:var(--val-red);font-weight:700">{{ p.deaths }}</td>
+                        <td class="text-center" style="color:var(--yellow)">{{ p.assists }}</td>
+                        <td class="text-center">
+                            <span class="kd-badge {% if p.kd >= 1.5 %}kd-good{% elif p.kd >= 1.0 %}kd-mid{% else %}kd-bad{% endif %}">{{ p.kd }}</span>
+                        </td>
+                        <td class="text-center">{{ p.adr }}</td>
+                        <td>
+                            <div class="hs-bar-wrap">
+                                <div class="hs-bar-track">
+                                    <div class="hs-bar-fill" style="width:{{ [p.hs_pct, 100]|min }}%"></div>
+                                </div>
+                                <div class="hs-val">{{ p.hs_pct }}%</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+
+    </div>
+</body>
+</html>
