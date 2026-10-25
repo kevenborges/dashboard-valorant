@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Valorant Dashboard</title>
+    <!-- Imports padrão de fontes e Bootstrap para grid inicial rápida -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
+        /* Mesmas variaveis de estilo da página dashboard.html */
         :root {
             --val-red:    #ff4655;
             --val-dark:   #0f1923;
@@ -19,6 +21,8 @@
             --val-muted:  #7f8fa6;
         }
         *, *::before, *::after { box-sizing: border-box; }
+        
+        /* Centraliza tudo na tela (como uma launch-page) */
         body {
             background-color: var(--val-dark);
             color: var(--val-light);
@@ -31,7 +35,7 @@
         }
         .val-font { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 
-        /* CARD PRINCIPAL */
+        /* CARD PRINCIPAL (Formulário de Busca centralizado) */
         .main-card {
             background: var(--val-panel);
             border: 1px solid var(--val-border);
@@ -40,7 +44,7 @@
             max-width: 440px;
         }
 
-        /* TÍTULO */
+        /* TÍTULO e LOGO TEXT */
         .logo-title {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 3.5rem;
@@ -56,7 +60,7 @@
             margin-bottom: 32px;
         }
 
-        /* FORM */
+        /* ESTILOS DE FORM: Inputs sem bordas arredondadas parecendo o client do LOL/VAL */
         .form-label {
             font-size: .7rem;
             font-weight: 700;
@@ -89,6 +93,8 @@
             border-radius: 0;
             font-weight: 700;
         }
+        
+        /* Botão Vermelho estilo Riot */
         .btn-submit {
             width: 100%;
             padding: 12px;
@@ -105,7 +111,7 @@
         }
         .btn-submit:hover { background: transparent; color: var(--val-red); }
 
-        /* ERRO */
+        /* ERRO: Caixa vermelha mostrada se API responder sem dados ou quando é deathmatch sem time */
         .erro-box {
             border: 1px solid var(--val-red);
             background: rgba(255,70,85,.08);
@@ -116,7 +122,7 @@
             font-weight: 600;
         }
 
-        /* HISTÓRICO */
+        /* HISTÓRICO LOCALSTORAGE: Painel com lista de perfis salvos por cookie/storage browser */
         .hist-section { margin-top: 28px; }
         .hist-title {
             font-size: .65rem;
@@ -168,15 +174,14 @@
             <div class="logo-sub">Dashboard & Tracker</div>
         </div>
 
-        <!-- Mensagem de erro (ex: Deathmatch sem scoreboard) -->
+        <!-- Mensagem de erro que vêm via Jinja (ex: Deathmatch sem scoreboard) -->
         {% if erro %}
         <div class="erro-box">⚠ {{ erro }}</div>
         {% endif %}
 
         <!--
-            Formulário principal: apenas Riot ID e Tagline.
-            O filtro de temporada aparece SOMENTE no dashboard,
-            após o perfil ser carregado com sucesso.
+            Formulário principal: POST request no endpoind "/dashboard"
+            Envia o Riot ID (Jogador) e a Tagline (#) separados.
         -->
         <form action="/dashboard" method="POST" id="search-form">
             <div class="mb-3">
@@ -193,7 +198,7 @@
             <button type="submit" class="btn-submit">Consultar Perfil</button>
         </form>
 
-        <!-- HISTÓRICO DE PESQUISAS -->
+        <!-- HISTÓRICO DE PESQUISAS INJETADO VIA JAVASCRIPT LOCAL (Navegador) -->
         <div class="hist-section" id="hist-section" style="display:none">
             <div class="hist-title">
                 <span>Pesquisas Recentes</span>
@@ -204,40 +209,46 @@
         </div>
     </div>
 
+    <!-- LOGICA JAVASCRIPT DO SISTEMA DE LOCAL STORAGE DA LISTA DE BUSCA -->
     <script>
+        // Cria chave local pra salvar pesquisas
         const STORAGE_KEY = 'val_search_history';
         const MAX_ITEMS   = 5;
 
-        // Carrega o histórico do localStorage
+        // Função: Carrega o histórico de array string JSON para Objetos ou Array vazio
         function carregarHistorico() {
             try {
                 return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
             } catch { return []; }
         }
 
-        // Salva o histórico no localStorage
+        // Função: Grava a Array em stringficada de volta no storage (cookie local)
         function salvarHistorico(lista) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
         }
 
-        // Adiciona uma busca ao histórico (evita duplicatas, mantém a mais recente no topo)
+        // Função: Inseri a busca limitando ao máximo de 5 e retirando duplicações
         function adicionarAoHistorico(riot_id, tagline) {
             let lista = carregarHistorico();
+            // Retira a dupla ID/Tag se ela já existir na lista (para adicionar pro topo em vez de duplicar)
             lista = lista.filter(i => !(
                 i.riot_id.toLowerCase() === riot_id.toLowerCase() &&
                 i.tagline.toLowerCase() === tagline.toLowerCase()
             ));
+            // Adiciona no topo
             lista.unshift({ riot_id, tagline });
+            // Força cortar fora se for > que maxitens permitidos
             lista = lista.slice(0, MAX_ITEMS);
             salvarHistorico(lista);
         }
 
-        // Renderiza o histórico na tela
+        // Função: Lê a Array LocalStorage e constrói tags HTML <div> dinâmicas de cada item guardado
         function renderizarHistorico() {
             const lista   = carregarHistorico();
             const section = document.getElementById('hist-section');
             const listEl  = document.getElementById('hist-list');
 
+            // Esconde UI de historico se nao tiver nada
             if (lista.length === 0) {
                 section.style.display = 'none';
                 return;
@@ -246,6 +257,7 @@
             section.style.display = 'block';
             listEl.innerHTML = '';
 
+            // Pra cada RiotID salvo, cria uma "Div Listagem" interativa
             lista.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'hist-item';
@@ -256,6 +268,7 @@
                     </div>
                     <span class="hist-item-arrow">→</span>
                 `;
+                // Event Listener pro Click. Se a pessoa clicar, injeta no Form os valores salvos e dá Submit auto.
                 div.addEventListener('click', () => {
                     document.getElementById('riot_id').value = item.riot_id;
                     document.getElementById('tagline').value = item.tagline;
@@ -265,19 +278,20 @@
             });
         }
 
-        // Limpa o histórico
+        // Função: Deleta as chaves locais na aba Storage
         function limparHistorico() {
             salvarHistorico([]);
             renderizarHistorico();
         }
 
-        // Ao submeter, salva a busca
+        // Ao dar um Submit com enter/click comum, guarda essa busca com prioridade no navegador do usuário
         document.getElementById('search-form').addEventListener('submit', function() {
             const riot_id = document.getElementById('riot_id').value.trim();
             const tagline = document.getElementById('tagline').value.trim();
             if (riot_id && tagline) adicionarAoHistorico(riot_id, tagline);
         });
 
+        // Tenta renderizar tudo assim que o HTML dá boot 
         renderizarHistorico();
     </script>
 </body>

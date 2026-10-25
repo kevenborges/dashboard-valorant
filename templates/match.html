@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Usa a propriedade `mapa` do objeto Scoreboard gerado pelo backend -->
     <title>Partida — {{ scoreboard.mapa }}</title>
+    
+    <!-- Bibliotecas comuns importadas via CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
+        /* Vars Base repetidas (Manteve-se a estrutura sem usar css externo pra facilitar deploy simples) */
         :root {
             --val-red:    #ff4655;
             --val-dark:   #0f1923;
@@ -24,12 +28,12 @@
         body { background: var(--val-dark); color: var(--val-light); font-family: 'Montserrat', sans-serif; padding-bottom: 60px; }
         .val-font { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 
-        /* NAV */
+        /* NAV: Nav basica */
         .topbar { border-bottom: 1px solid var(--val-border); padding: 14px 0; margin-bottom: 32px; }
         .btn-back { font-family: 'Bebas Neue', sans-serif; letter-spacing: 1.5px; font-size: 1rem; color: var(--val-light); border: 1px solid var(--val-red); border-radius: 0; padding: 6px 20px; text-decoration: none; transition: background .2s; }
         .btn-back:hover { background: var(--val-red); color: #fff; }
 
-        /* HEADER DA PARTIDA */
+        /* HEADER DA PARTIDA: Painel grande central informando placar cru, e qual modo foi jogado */
         .match-header {
             background: var(--val-panel);
             border: 1px solid var(--val-border);
@@ -42,6 +46,8 @@
         }
         .match-meta { font-size: .8rem; color: var(--val-muted); letter-spacing: 1px; text-transform: uppercase; }
         .match-map  { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; line-height: 1; }
+        
+        /* PLACAR VISUAL DO HEADER */
         .score-block { text-align: center; }
         .score-nums { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; line-height: 1; display: flex; align-items: center; gap: 16px; }
         .score-sep  { color: var(--val-muted); font-size: 2rem; }
@@ -49,11 +55,12 @@
         .score-loss { color: var(--val-red); }
         .score-label { font-size: .65rem; font-weight: 700; letter-spacing: 2px; color: var(--val-muted); text-transform: uppercase; margin-top: 4px; }
 
-        /* TABELA */
+        /* TABELA DE JOGADORES: Cores diferentes e bordas para o quadro que identifica o "Time Vencedor" */
         .team-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 2px; padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
         .team-title.win-team  { background: rgba(74,222,128,.12); color: var(--green);   border-left: 3px solid var(--green); }
         .team-title.loss-team { background: rgba(255,70,85,.08);  color: var(--val-red); border-left: 3px solid var(--val-red); }
 
+        /* ESTRUTURA GERAL DAS TABELAS */
         .sb-wrap { background: var(--val-panel); border: 1px solid var(--val-border); overflow-x: auto; margin-bottom: 20px; }
         table.sb { width: 100%; border-collapse: collapse; font-size: .82rem; }
         table.sb thead tr { background: rgba(255,255,255,.04); font-family: 'Bebas Neue', sans-serif; font-size: .9rem; letter-spacing: 1.5px; color: var(--val-muted); }
@@ -61,7 +68,7 @@
         table.sb td { padding: 10px 14px; border-top: 1px solid var(--val-border); vertical-align: middle; white-space: nowrap; }
         table.sb tbody tr:hover { background: rgba(255,255,255,.03); }
 
-        /* Destaque do jogador buscado */
+        /* DESTAQUE DO USUÁRIO BUSCADO: Aquele RiotID de onde você veio do clique, pinta as letras e colunas de vermelho! */
         table.sb tbody tr.highlight {
             background: rgba(255,70,85,.1);
             border-left: 3px solid var(--val-red);
@@ -70,16 +77,19 @@
             color: var(--val-red);
         }
 
+        /* CELULAS ESPECÍFICAS DA TABELA */
         .agent-cell { display: flex; align-items: center; gap: 8px; }
         .agent-cell img { width: 30px; height: 30px; object-fit: contain; }
         .player-name-cell { font-weight: 700; }
         .player-tag { color: var(--val-muted); font-size: .75rem; font-weight: 400; }
 
+        /* K/D INDICATORS */
         .kd-badge { display: inline-block; padding: 2px 8px; font-weight: 700; font-size: .78rem; }
         .kd-good { background: rgba(74,222,128,.15); color: var(--green); }
         .kd-mid  { background: rgba(255,255,255,.08); color: var(--val-light); }
         .kd-bad  { background: rgba(255,70,85,.15);   color: var(--val-red); }
 
+        /* HS% BARS INLINE */
         .hs-bar-wrap { display: flex; align-items: center; gap: 8px; min-width: 80px; }
         .hs-bar-track { flex: 1; height: 3px; background: rgba(255,255,255,.1); }
         .hs-bar-fill  { height: 100%; background: var(--yellow); }
@@ -90,13 +100,14 @@
 
     <div class="topbar">
         <div class="container">
+            <!-- Usa função JS nativa em vez do Jinja pra voltar ao histórico anterior sem re-executar requisição pro backend -->
             <a href="javascript:history.back()" class="btn-back">&larr; Voltar</a>
         </div>
     </div>
 
     <div class="container">
 
-        <!-- HEADER -->
+        <!-- HEADER DA MATCH CONTENDO PLACAR A x B -->
         <div class="match-header">
             <div>
                 <div class="match-meta">{{ scoreboard.modo }}</div>
@@ -104,6 +115,7 @@
             </div>
             <div class="score-block">
                 <div class="score-nums">
+                    <!-- Verifica cor baseada em quem a string the "time_vencedor" acusa -->
                     <span class="{% if scoreboard.time_vencedor == 'red' %}score-win{% else %}score-loss{% endif %}">{{ scoreboard.placar_a }}</span>
                     <span class="score-sep">:</span>
                     <span class="{% if scoreboard.time_vencedor == 'blue' %}score-win{% else %}score-loss{% endif %}">{{ scoreboard.placar_b }}</span>
@@ -112,11 +124,13 @@
             </div>
         </div>
 
-        <!-- TIMES -->
+        <!-- LOOP DE TIMES: Itera sobre uma lista de tuplas criada internamente no JINJA pra renderizar duas tabelas (2 Times) -->
         {% for time_label, jogadores, eh_vencedor in [
             ('Time A', scoreboard.time_a, scoreboard.time_vencedor == 'red'),
             ('Time B', scoreboard.time_b, scoreboard.time_vencedor == 'blue')
         ] %}
+        
+        <!-- WRAP DA TABELA REFERENTE A UM TIME -->
         <div class="sb-wrap">
             <div class="team-title {% if eh_vencedor %}win-team{% else %}loss-team{% endif %}">
                 {{ time_label }} — {% if eh_vencedor %}Vitória{% else %}Derrota{% endif %}
@@ -131,13 +145,17 @@
                         <th class="text-center">D</th>
                         <th class="text-center">A</th>
                         <th class="text-center">K/D</th>
+                        <!-- ADR: Average Damage per Round -->
                         <th class="text-center">ADR</th>
                         <th>HS%</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Intera nos jogadores já mapeados na ordem Decrescente de ACS pelo Python -->
                     {% for p in jogadores %}
+                    <!-- Verifica boolean match pra dar a variavel HIGHLIGHT no CSS pro cara exato requisitado na URL -->
                     {% set is_highlight = p.nome|lower == jogador|lower and p.tag|lower == tagline|lower %}
+                    
                     <tr class="{% if is_highlight %}highlight{% endif %}">
                         <td>
                             <div class="agent-cell">
@@ -154,6 +172,7 @@
                         <td class="text-center" style="color:var(--val-red);font-weight:700">{{ p.deaths }}</td>
                         <td class="text-center" style="color:var(--yellow)">{{ p.assists }}</td>
                         <td class="text-center">
+                            <!-- Classificações cromáticas pro nível do KD -->
                             <span class="kd-badge {% if p.kd >= 1.5 %}kd-good{% elif p.kd >= 1.0 %}kd-mid{% else %}kd-bad{% endif %}">{{ p.kd }}</span>
                         </td>
                         <td class="text-center">{{ p.adr }}</td>
